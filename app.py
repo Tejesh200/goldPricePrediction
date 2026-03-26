@@ -46,7 +46,12 @@ st.markdown("_Predictive Analytics & Machine Learning for Precious Metals_")
 def load_data():
     file_path = "data/processed/powerbi_export.csv"
     if os.path.exists(file_path):
-        return pd.read_csv(file_path, parse_dates=['Date'])
+        try:
+            df = pd.read_csv(file_path, parse_dates=['Date'])
+            if len(df) > 0:
+                return df
+        except Exception as e:
+            st.error(f"Error loading {file_path}: {e}")
     return None
 
 data = load_data()
@@ -82,7 +87,14 @@ else:
     st.markdown("### 📈 Historical vs Predicted Closing Prices")
     
     # Selector for timeframe
-    days_to_show = st.slider("Select days to view:", min_value=30, max_value=len(data), value=365)
+    max_days = len(data)
+    if max_days > 1:
+        min_days = min(30, max_days)
+        default_days = min(365, max_days)
+        days_to_show = st.slider("Select days to view:", min_value=min_days, max_value=max_days, value=default_days)
+    else:
+        days_to_show = max_days
+        
     df_plot = data.tail(days_to_show)
 
     fig = go.Figure()
